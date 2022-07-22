@@ -1,16 +1,10 @@
 import AWS from 'aws-sdk';
-
-const sqsConfig = {
-    apiVersion: "",
-    accessKeyId: "",
-    secretAccessKey: "",
-    region: ''
-}
+import {Response} from 'express';
+import {config} from "../../services/aws";
 
 export default class CreationAlert {
-
-    sendAlert = (id: string, quantity: string) => {
-        const sqs = new AWS.SQS(sqsConfig);
+    sendAlert = (id: string, quantity: string, res: Response<any, Record<string, any>>) => {
+        const sqs = new AWS.SQS(config);
         const params = {
             MessageAttributes: {
                 'Alert-Type': {
@@ -31,15 +25,30 @@ export default class CreationAlert {
                 },
             },
             MessageBody: JSON.stringify({
-                message: 'New register',
+                id: id,
+                date: (new Date()).toISOString(),
+                quantity: quantity
             }),
-            QueueUrl: ''
+            QueueUrl: config.queueUrl
         };
         sqs.sendMessage(params, (err, data) => {
             if (err) {
                 console.log("Error", err);
+                res.send({
+                    status: 'error',
+                    error: err
+                });
             } else {
                 console.log("Successfully added message", data.MessageId);
+                res.send({
+                    status: 'Complete',
+                    data: data,
+                    message: {
+                        id: id,
+                        date: (new Date()).toISOString(),
+                        quantity: quantity
+                    }
+                });
             }
         });
     }

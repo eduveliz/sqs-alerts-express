@@ -2,6 +2,7 @@ import express, {Express, Request, Response} from 'express';
 import dotenv from 'dotenv';
 import CreationAlert from "./src/modules/alert/creationAlert";
 import {Creation} from "./src/interfaces/Inteface-alerts";
+import ListenAlert from "./src/modules/alert/ListenAlert";
 
 dotenv.config();
 
@@ -21,13 +22,14 @@ app.post('/creation', (req: Request, res: Response) => {
         quantity: req.body.quantity,
     }
     const creationAlert = new CreationAlert;
-    creationAlert.sendAlert(creation.id, creation.quantity);
-    res.send({
-        response: 'send sqs message',
-        action: 'creation',
-        id: creation.id
-    });
+    creationAlert.sendAlert(creation.id, creation.quantity , res);
 })
+
+app.get('/listen', (req: Request, res: Response) => {
+    const listenAlert = new ListenAlert;
+    listenAlert.listen(res)
+})
+
 
 app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
